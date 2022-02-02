@@ -13,6 +13,12 @@
         "title": "Friends",
         "gender": "Comedia",
         "image": "https://via.placeholder.com/150"
+      },
+      {
+        "id": "3",
+        "title": "The Bing Bang Theory",
+        "gender": "Comedia",
+        "image": "https://via.placeholder.com/150"
       }
     ]
   }

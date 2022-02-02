@@ -14,9 +14,9 @@ server.listen(serverPort, () => {
 });
 
 server.get('/movies', (req, res) => {
-  console.log('Petición a la ruta GET /');
+  console.log('Petición a la ruta GET / ');
   const response = movies;
-  const filteredData = response.movies.filter((movie) => movie.gender === req.query.gender);
-
-  res.json(filteredData);
+  //Me devuelve error 500
+  //const filteredData = response.filter((movie) => movie.gender === genderFilterParam);
+  res.json(response);
 });
