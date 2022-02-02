@@ -14,9 +14,20 @@ server.listen(serverPort, () => {
 });
 
 server.get('/movies', (req, res) => {
-  console.log('Petición a la ruta GET /');
-  const response = movies;
-  const filteredData = response.movies.filter((movie) => movie.gender === req.query.gender);
+  console.log('Petición a la ruta GET /movies');
+  const response = {
+    success: true,
+    movies: [],
+  };
 
-  res.json(filteredData);
+  const filteredData = movies.movies.movies.filter((movie) => {
+    if (req.query.gender) {
+      return movie.gender === req.query.gender;
+    }
+
+    return true;
+  });
+
+  response.movies = filteredData;
+  res.json(response);
 });
