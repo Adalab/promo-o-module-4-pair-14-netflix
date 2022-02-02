@@ -20,13 +20,21 @@ server.get('/movies', (req, res) => {
     movies: [],
   };
 
-  const filteredData = movies.movies.movies.filter((movie) => {
-    if (req.query.gender) {
-      return movie.gender === req.query.gender;
-    }
+  const filteredData = movies.movies.movies
+    .filter((movie) => {
+      if (req.query.gender) {
+        return movie.gender === req.query.gender;
+      }
 
-    return true;
-  });
+      return true;
+    })
+    .sort(function (a, b) {
+      const result = a.title.localeCompare(b.title);
+      if (req.query.sort === 'desc') {
+        return result * -1;
+      }
+      return result;
+    });
 
   response.movies = filteredData;
   res.json(response);
