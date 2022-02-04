@@ -42,7 +42,7 @@ const staticServerImages = './src/public-movies-images';
 server.use(express.static(staticServerImages));
 
 //servidor de estáticos css
-const staticServerCss = '../styles/main.css';
+const staticServerCss = './src/static/styles';
 server.use(express.static(staticServerCss));
 
 //URL params
