@@ -6,9 +6,11 @@ const movies = require('./movies.json');
 const server = express();
 server.use(cors());
 server.use(express.json());
+//Motor de plantillas
+server.set('view engine', 'ejs');
 
-//servidor de estáticos 
-const staticServerPath = "./src/public";
+//servidor de estáticos
+const staticServerPath = './src/public';
 server.use(express.static(staticServerPath));
 
 // init express aplication
@@ -20,20 +22,31 @@ server.listen(serverPort, () => {
 server.get('/movies', (req, res) => {
   console.log('Petición a la ruta GET / ');
   const response = {
-    success:true,
-    movies:[]
+    success: true,
+    movies: [],
   };
-  const genderFilterParam=req.query.gender;
+  const genderFilterParam = req.query.gender;
   const sortFilterParam = req.query.sort;
   const filteredData = movies.movies.movies.filter((movie) => {
     if(genderFilterParam){
       return movie.gender===genderFilterParam;
     }return true;
   });
-  response.movies=filteredData;
+  response.movies = filteredData;
   res.json(response);
 });
 
 //servidor de estáticos imagenes
-const staticServerImages = "./src/public-movies-images";
+const staticServerImages = './src/public-movies-images';
 server.use(express.static(staticServerImages));
+
+//servidor de estáticos css
+const staticServerCss = '../styles/main.css';
+server.use(express.static(staticServerCss));
+
+//URL params
+server.get('/movies/:movieId', (req, res) => {
+  const paramMovieId = req.params.movieId;
+  const foundMovie = movies.movies.movies.find((movie) => movie.id === paramMovieId);
+  res.render('movie', foundMovie);
+});
