@@ -28,10 +28,9 @@ server.get('/movies', (req, res) => {
   const genderFilterParam = req.query.gender;
   const sortFilterParam = req.query.sort;
   const filteredData = movies.movies.movies.filter((movie) => {
-    if (genderFilterParam) {
-      return movie.gender === genderFilterParam;
-    }
-    return true;
+    if(genderFilterParam){
+      return movie.gender===genderFilterParam;
+    }return true;
   });
   response.movies = filteredData;
   res.json(response);
