@@ -20,3 +20,6 @@ server.get('/movies', (req, res) => {
 
   res.json(filteredData);
 });
+server.get('/movie/:movieId', (req, res) => {
+  const dataMovieId = req.params.movieId;
+});
