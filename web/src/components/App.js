@@ -32,7 +32,9 @@ const App = () => {
 
   //UseEffect para que, cada vez que cambie el valor de userId, se guarde en el local storage
   useEffect(() => {
-    ls.set('userId', userId);
+    if (userId !== undefined) {
+      ls.set('userId', userId);
+    }
   }, [userId]);
 
   /*

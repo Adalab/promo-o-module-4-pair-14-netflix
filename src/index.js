@@ -2,13 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
 
-const movies = require('./data/movies.json');
 const users = require('./data/users.json');
 
 // create and config server
 const server = express();
 server.use(cors());
 server.use(express.json());
+server.set('view engine', 'ejs');
 
 //Servidor de estaticos
 const staticServerPath = './src/public-react';
@@ -51,38 +51,18 @@ server.get('/movies', (req, res) => {
   } else {
     allMovies = query.all();
   }
-  //const allMovies = query.all();
-  console.log(allMovies);
-  /*const genderFilterParam = req.query.gender;
-  const sortFilterParam = req.query.sort;*/
-
-  //Filtro por género
-  /*const moviesData = allMovies
-    .filter((movie) => {
-      if (genderFilterParam) {
-        return movie.gender === genderFilterParam;
-      }
-      return true;
-    })
-    .sort(function (a, b) {
-      const result = a.title.localeCompare(b.title);
-      if (req.query.sort === 'desc') {
-        return result * -1;
-      }
-      return result;
-    });*/
 
   response.movies = allMovies;
   res.json(response);
 });
 
+//Endpoint Login
 server.post('/login', (req, res) => {
   console.log('Petición a la ruta POST /login');
-  const emailLogin = req.body.email;
-  const passwordLogin = req.body.password;
-  const foundUser = users.find(
-    (eachUser) => eachUser.password === passwordLogin && eachUser.email === emailLogin
-  );
+  console.log('patata');
+  const query = db.prepare('SELECT * FROM users WHERE email=? AND password=?');
+  const foundUser = query.get(req.body.email, req.body.password);
+
   if (foundUser) {
     res.json({
       success: true,
@@ -94,4 +74,16 @@ server.post('/login', (req, res) => {
       errorMessage: 'Usuaria/o no encontrada/o',
     });
   }
+});
+
+//servidor de estáticos css
+const staticServerCss = './src/static/styles';
+server.use(express.static(staticServerCss));
+
+//Endpoint para devolver la vista de una pelicula usando motor de plantillas.
+server.get('/movies/:movieId', (req, res) => {
+  const query = db.prepare('SELECT * FROM movies WHERE id = ?');
+  const selectedMovie = query.get(req.params.movieId);
+
+  res.render('movie', selectedMovie);
 });
