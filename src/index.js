@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const movies = require('./movies.json');
 const Database = require('better-sqlite3');
+const { response } = require('express');
 const db = new Database('./src/db/movies.db', { verbose: console.log });
+const dbSigngUp = new Database('./src/db/usersNetflix.db', { verbose: console.log });
 
 // create and config server
 const server = express();
@@ -41,6 +43,45 @@ server.get('/movies', (req, res) => {
 
   response.movies = filteredData;
   res.json(response);
+});
+
+server.post('/sign-up', (req, res) => {
+  console.log('Petición a la ruta POST /sign-up ');
+  const email = req.body.email;
+  const pass = req.body.pass;
+
+  const selectUser = dbSigngUp.prepare('select * from users where email = ?');
+  const foundUser = selectUser.get(email);
+
+  if (foundUser === undefined) {
+    const query = dbSigngUp.prepare('INSERT INTO users (email, pass) VALUES (?, ?)');
+    const userInsert = query.run(email, pass);
+    response.json({
+      success: true,
+      userId: userInsert.lastInsertRowid,
+    });
+  } else {
+    response.json({
+      success: false,
+      message: 'El usuario ya existe',
+    });
+  }
+
+  // if (!email || !pass) {
+  //   res.sendStatus(404);
+  // } else {
+  //   const query = db.prepare('SELECT * FROM users WHERE pass= ? and email=?');
+  //   const foundUser = query.get(pass, email);
+  //   if (foundUser != undefined) {
+  //     res.json({
+  //       userId: foundUser.id,
+  //     });
+  //   } else {
+  //     res.json({
+  //       error: 'Error',
+  //     });
+  //   }
+  // }
 });
 
 //servidor de estáticos imagenes
