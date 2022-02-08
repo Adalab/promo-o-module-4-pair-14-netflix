@@ -1,9 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 //const movies = require("./data/movies.json");
-const users = require("./data/users.json");
-const Database = require('better-sqlite3');
-const db = new Database('./src/db/movies.db', { verbose: console.log });
+//const users = require("./data/users.json");
+const Database = require("better-sqlite3");
+const db = new Database("./src/db/movies.db", { verbose: console.log });
+const dbUsers = new Database("./src/db/users.db", { verbose: console.log });
 
 // create and config server
 const app = express();
@@ -19,69 +20,139 @@ app.listen(serverPort, () => {
 });
 
 //configuración ejs plantilla
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 app.get("/movies", (req, res) => {
-  console.log("petición a la ruta Get /");
-  const response = {
-    success: true,
-    movies: [],
-  };
-  const query = db.prepare('SELECT * FROM movies');
-  const moviesDatabase = query.all();
+  console.log("petición a la ruta Get / movies");
+  const query = db.prepare("SELECT * FROM movies");
+  const queryGender = db.prepare("SELECT * FROM movies WHERE gender = ?");
+  //const queryAsc= db.prepare("SELECT * FROM movies ORDER BY title ASC");
+  //const queryDesc= db.prepare("SELECT * FROM movies ORDER BY title DES");
   const genderFilterParam = req.query.gender;
   const sortFilterParam = req.query.sort;
-  const filterData = moviesDatabase.filter((movie) => {
-    if (genderFilterParam) {
-      return movie.gender === genderFilterParam;
-    } 
-    return true;
-  })
-  .sort((a,b)=>{
-    if(sortFilterParam === "asc"){
-      if(a.title > b.title){
-        return 1
-      }else{
-        return -1;
-      };
-    }else if(sortFilterParam === "desc"){
-      if(a.title < b.title){
-        return 1;
-      }else{
-        return -1;
-      };
-    }
-  });
+  const moviesDatabase = query.all();
+  const genderData = queryGender.all(genderFilterParam);
+  if (genderFilterParam === "") {
+    res.json({
+      success: true,
+      movies: moviesDatabase,
+    });
+  } else {
+    res.json({
+      success: true,
+      movies: genderData,
+    });
+  }
+  /*const filterData = moviesDatabase
+    .filter((movie) => {
+      if (genderFilterParam) {
+        return movie.gender === genderFilterParam;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortFilterParam === "asc") {
+        if (a.title > b.title) {
+          return 1;
+        } else {
+          return -1;
+        }
+      } else if (sortFilterParam === "desc") {
+        if (a.title < b.title) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
+    });
   response.movies = filterData;
-  res.json(response);
+  res.json(response);*/
 });
 
 //petición post body params
 app.post("/login", (req, res) => {
-  console.log("petición a la ruta Post /");
-  console.log(req.body.email);
-  const response = {
-    success: true,
-    users: [],
-  };
-  const query = db.prepare('SELECT * FROM users');
-  const usersDatabase = query.all();
-  const filteredUsers = usersDatabase.find((user) => {
+  console.log("petición a la ruta Post / login");
+  const email = req.body.email;
+  const pass = req.body.password;
+  const query = dbUsers.prepare(
+    "SELECT * FROM users WHERE password = ? and email= ?"
+  );
+  const usersDatabase = query.get(pass, email);
+  if (usersDatabase !== undefined) {
+    res.json({
+      success: true,
+      userId: "id_de_la_usuaria_encontrada",
+    });
+  } else {
+    res.json({
+      success: false,
+      error: "Usuario no encontrado",
+    });
+  }
+  /*const filteredUsers = usersDatabase.find((user) => {
     if (req.body.email === user.email) {
       res.json({
         success: true,
         userId: "id_de_la_usuaria_encontrada",
       });
     } else {
-      res.json({
-        success: false,
-        errorMessage: "Usuaria/o no encontrada/o",
-      });
+      
     }
   });
   response.users = filteredUsers;
-  res.json(response);
+  res.json(response);*/
 });
+
+app.post("/signUp", (req, res) => {
+  console.log("petición a la ruta Post / sign-up");
+  const email = req.body.email;
+  const pass = req.body.password;
+  const foundUsers = dbUsers.prepare(
+    "SELECT * FROM users WHERE email = ?"
+  );
+  const usersDatabase = foundUsers.get(email);
+
+  if (usersDatabase === undefined) {
+    const query = dbUsers.prepare('INSERT INTO users (email,password) VALUES (?,?)');
+    const userInsert = query.run(email, pass);
+    res.json({
+      success: false,
+      userId: userInsert.lastInsertRowid,
+    });
+  } else {
+    res.json({
+      success: true,
+      message: "Usuaria ya existente",
+    });
+  }
+});
+
+app.post("./profile",(req, res)=>{
+  console.log("petición a la ruta Post / profile");
+  console.log(req.body)
+  const email = req.body.email;
+  const name = req.body.name;
+  const id = req.header.id;
+  const foundUsers = dbUsers.prepare(
+    'UPDATE users SET email =?, name = ? WHERE id = ?'
+  );
+  const userUpdate = query.run(
+    email,
+    id,
+    name
+  );
+  if (userUpdate.changes !== 0) {
+    res.json({
+      error: false,
+      message: 'modificado con exito',
+    });
+  } else {
+    res.json({
+      error: true,
+      message: 'ha ocurrido un error',
+    });
+  }
+})
 
 //create static server
 const staticServerPathWeb = "./src/public"; // En esta carpeta ponemos los ficheros estáticos
@@ -97,15 +168,15 @@ app.use(express.static(staticServerPathStyles));
 
 //URL params
 //esto no me funciona bien *
-app.get("/movie/:movieId", (req,res)=>{
-const paramMovieId = req.params.movieId;
-console.log(paramMovieId);
-const query = db.prepare('SELECT id FROM movies');
-const moviesDataId = query.get(paramMovieId);
-/*const foundMovie = moviesDataId.find(movie => {
+app.get("/movie/:movieId", (req, res) => {
+  const paramMovieId = req.params.movieId;
+  console.log(paramMovieId);
+  const query = db.prepare("SELECT * FROM movies WHERE id = ?");
+  const moviesDataId = query.get(paramMovieId);
+  /*const foundMovie = moviesDataId.find(movie => {
   return movie.id === paramMovieId;
 })*/
-console.log(moviesDataId);
-//console.log(foundMovie);
-res.render('movie', moviesDataId);
+  console.log(moviesDataId);
+  //console.log(foundMovie);
+  res.render("movie", moviesDataId);
 });
