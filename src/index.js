@@ -59,7 +59,6 @@ server.get('/movies', (req, res) => {
 //Endpoint Login
 server.post('/login', (req, res) => {
   console.log('Petición a la ruta POST /login');
-  console.log('patata');
   const query = db.prepare('SELECT * FROM users WHERE email=? AND password=?');
   const foundUser = query.get(req.body.email, req.body.password);
 
@@ -74,6 +73,54 @@ server.post('/login', (req, res) => {
       errorMessage: 'Usuaria/o no encontrada/o',
     });
   }
+});
+
+//Endpoint Sign-up (Registrarse)
+server.post('/sign-up', (req, res) => {
+  console.log('Petición a la ruta POST /sign-up');
+  const queryCheck = db.prepare('SELECT * FROM users WHERE email=?');
+  const foundUser = queryCheck.get(req.body.email);
+  if (foundUser) {
+    res.json({
+      success: false,
+      errorMessage: 'Usuaria ya existente',
+    });
+  } else {
+    const query = db.prepare('INSERT INTO users (email, password) VALUES (?, ?)');
+    const result = query.run(req.body.email, req.body.password);
+    if (result) {
+      res.json({
+        success: true,
+        userId: result,
+      });
+    } else {
+      res.json({
+        success: false,
+        errorMessage: 'Ha habido un error',
+      });
+    }
+  }
+});
+
+//Endpoint perfil de usuario
+server.post('/user/profile', (req, res) => {
+  console.log('Petición a la ruta POST /user/profile');
+  const userId = req.header('user-id');
+  const query = db.prepare('UPDATE users SET name= ?, email = ?, password = ? WHERE id = ?');
+  const result = query.run(req.body.name, req.body.email, req.body.password, userId);
+
+  res.json({
+    success: true,
+  });
+});
+//Endpoint recuperar datos del perfil de usuario
+server.get('/user/profile', (req, res) => {
+  console.log('Petición a la ruta GET /user/profile');
+  const userId = req.header('user-id');
+  const query = db.prepare('SELECT name, email, password FROM users WHERE id=?');
+  const result = query.get(userId);
+
+  res.json(result);
 });
 
 //servidor de estáticos css

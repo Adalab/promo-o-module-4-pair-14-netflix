@@ -147,6 +147,7 @@ const App = () => {
   const logout = () => {
     router.redirect('/');
     router.reload();
+    ls.set('userId', '');
   };
 
   /*
@@ -190,6 +191,7 @@ const App = () => {
         </Route>
         <Route path='/profile'>
           <Profile
+            userId={userId}
             userName={userName}
             userEmail={userEmail}
             userPassword={userPassword}
