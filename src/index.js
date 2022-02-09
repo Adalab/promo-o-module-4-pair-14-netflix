@@ -121,6 +121,13 @@ server.get('/user/profile', (req, res) => {
   res.json(result);
 });
 
+server.get('/user/movies', (req, res) => {
+  res.json({
+    success: true,
+    movies: [],
+  });
+});
+
 //servidor de estáticos css
 const staticServerCss = './src/static/styles';
 server.use(express.static(staticServerCss));
