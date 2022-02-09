@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
 
-const users = require('./data/users.json');
-
 // create and config server
 const server = express();
 server.use(cors());
@@ -121,6 +119,13 @@ server.get('/user/profile', (req, res) => {
   const result = query.get(userId);
 
   res.json(result);
+});
+
+server.get('/user/movies', (req, res) => {
+  res.json({
+    success: true,
+    movies: [],
+  });
 });
 
 //servidor de estáticos css
