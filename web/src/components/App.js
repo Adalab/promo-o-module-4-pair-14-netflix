@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
+import ls from '../services/local-storage';
+
 // components
 import Header from './Header';
 import AllMovies from './AllMovies';
@@ -14,7 +16,7 @@ import router from '../services/router';
 
 const App = () => {
   // state: user
-  const [userId, setUserId] = useState('');
+  const [userId, setUserId] = useState(ls.get('userId'));
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
@@ -27,6 +29,13 @@ const App = () => {
   const [appMovies, setAppMovies] = useState([]);
   const [allMoviesOptionGender, setAllMoviesOptionGender] = useState('');
   const [allMoviesOptionSort, setAllMoviesOptionSort] = useState('asc');
+
+  //UseEffect para que, cada vez que cambie el valor de userId, se guarde en el local storage
+  useEffect(() => {
+    if (userId !== undefined) {
+      ls.set('userId', userId);
+    }
+  }, [userId]);
 
   /*
   useEffect: obtener las películas del API.
@@ -138,6 +147,7 @@ const App = () => {
   const logout = () => {
     router.redirect('/');
     router.reload();
+    ls.set('userId', '');
   };
 
   /*
@@ -181,6 +191,7 @@ const App = () => {
         </Route>
         <Route path='/profile'>
           <Profile
+            userId={userId}
             userName={userName}
             userEmail={userEmail}
             userPassword={userPassword}

@@ -1,21 +1,21 @@
 const express = require('express');
 const cors = require('cors');
-const movies = require('./movies.json');
 const Database = require('better-sqlite3');
-const { response } = require('express');
-const db = new Database('./src/db/movies.db', { verbose: console.log });
-const dbSigngUp = new Database('./src/db/usersNetflix.db', { verbose: console.log });
+
+const users = require('./data/users.json');
 
 // create and config server
 const server = express();
 server.use(cors());
 server.use(express.json());
-//Motor de plantillas
 server.set('view engine', 'ejs');
 
-//servidor de estáticos
-const staticServerPath = './src/public';
+//Servidor de estaticos
+const staticServerPath = './src/public-react';
 server.use(express.static(staticServerPath));
+//Servidor de estaticos imagenes
+const staticServerImage = './src/public-movies-images';
+server.use(express.static(staticServerImage));
 
 // init express aplication
 const serverPort = 4000;
@@ -23,78 +23,114 @@ server.listen(serverPort, () => {
   console.log(`Server listening at http://localhost:${serverPort}`);
 });
 
+const db = new Database('./src/db/database.db', { verbose: console.log });
+
+//Endpoint para obtener las peliculas
 server.get('/movies', (req, res) => {
-  console.log('Petición a la ruta GET / ');
+  console.log('Petición a la ruta GET /movies');
   const response = {
     success: true,
     movies: [],
   };
-  const query = db.prepare('SELECT * FROM movies');
-  const moviesPrueba = query.all();
-  console.log(moviesPrueba);
-  const genderFilterParam = req.query.gender;
-  const sortFilterParam = req.query.sort;
-  const filteredData = moviesPrueba.filter((movie) => {
-    if (genderFilterParam) {
-      return movie.gender === genderFilterParam;
-    }
-    return true;
-  });
 
-  response.movies = filteredData;
+  let queryString = 'SELECT * FROM movies';
+  if (req.query.gender !== '') {
+    queryString += ' WHERE gender = ?';
+  }
+
+  queryString += ' ORDER BY title';
+
+  if (req.query.sort === 'desc') {
+    queryString += ' DESC';
+  }
+
+  const query = db.prepare(queryString);
+  let allMovies = [];
+  if (req.query.gender !== '') {
+    allMovies = query.all(req.query.gender);
+  } else {
+    allMovies = query.all();
+  }
+
+  response.movies = allMovies;
   res.json(response);
 });
 
-server.post('/sign-up', (req, res) => {
-  console.log('Petición a la ruta POST /sign-up ');
-  const email = req.body.email;
-  const pass = req.body.pass;
+//Endpoint Login
+server.post('/login', (req, res) => {
+  console.log('Petición a la ruta POST /login');
+  const query = db.prepare('SELECT * FROM users WHERE email=? AND password=?');
+  const foundUser = query.get(req.body.email, req.body.password);
 
-  const selectUser = dbSigngUp.prepare('select * from users where email = ?');
-  const foundUser = selectUser.get(email);
-
-  if (foundUser === undefined) {
-    const query = dbSigngUp.prepare('INSERT INTO users (email, pass) VALUES (?, ?)');
-    const userInsert = query.run(email, pass);
-    response.json({
+  if (foundUser) {
+    res.json({
       success: true,
-      userId: userInsert.lastInsertRowid,
+      userId: foundUser.id,
     });
   } else {
-    response.json({
+    res.json({
       success: false,
-      message: 'El usuario ya existe',
+      errorMessage: 'Usuaria/o no encontrada/o',
     });
   }
-
-  // if (!email || !pass) {
-  //   res.sendStatus(404);
-  // } else {
-  //   const query = db.prepare('SELECT * FROM users WHERE pass= ? and email=?');
-  //   const foundUser = query.get(pass, email);
-  //   if (foundUser != undefined) {
-  //     res.json({
-  //       userId: foundUser.id,
-  //     });
-  //   } else {
-  //     res.json({
-  //       error: 'Error',
-  //     });
-  //   }
-  // }
 });
 
-//servidor de estáticos imagenes
-const staticServerImages = './src/public-movies-images';
-server.use(express.static(staticServerImages));
+//Endpoint Sign-up (Registrarse)
+server.post('/sign-up', (req, res) => {
+  console.log('Petición a la ruta POST /sign-up');
+  const queryCheck = db.prepare('SELECT * FROM users WHERE email=?');
+  const foundUser = queryCheck.get(req.body.email);
+  if (foundUser) {
+    res.json({
+      success: false,
+      errorMessage: 'Usuaria ya existente',
+    });
+  } else {
+    const query = db.prepare('INSERT INTO users (email, password) VALUES (?, ?)');
+    const result = query.run(req.body.email, req.body.password);
+    if (result) {
+      res.json({
+        success: true,
+        userId: result,
+      });
+    } else {
+      res.json({
+        success: false,
+        errorMessage: 'Ha habido un error',
+      });
+    }
+  }
+});
+
+//Endpoint perfil de usuario
+server.post('/user/profile', (req, res) => {
+  console.log('Petición a la ruta POST /user/profile');
+  const userId = req.header('user-id');
+  const query = db.prepare('UPDATE users SET name= ?, email = ?, password = ? WHERE id = ?');
+  const result = query.run(req.body.name, req.body.email, req.body.password, userId);
+
+  res.json({
+    success: true,
+  });
+});
+//Endpoint recuperar datos del perfil de usuario
+server.get('/user/profile', (req, res) => {
+  console.log('Petición a la ruta GET /user/profile');
+  const userId = req.header('user-id');
+  const query = db.prepare('SELECT name, email, password FROM users WHERE id=?');
+  const result = query.get(userId);
+
+  res.json(result);
+});
 
 //servidor de estáticos css
 const staticServerCss = './src/static/styles';
 server.use(express.static(staticServerCss));
 
-//URL params
+//Endpoint para devolver la vista de una pelicula usando motor de plantillas.
 server.get('/movies/:movieId', (req, res) => {
-  const paramMovieId = req.params.movieId;
-  const foundMovie = movies.movies.movies.find((movie) => movie.id === paramMovieId);
-  res.render('movie', foundMovie);
+  const query = db.prepare('SELECT * FROM movies WHERE id = ?');
+  const selectedMovie = query.get(req.params.movieId);
+
+  res.render('movie', selectedMovie);
 });

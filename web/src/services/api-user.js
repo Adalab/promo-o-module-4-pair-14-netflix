@@ -2,6 +2,7 @@
 
 const sendLoginToApi = (data) => {
   console.log('Se están enviando datos al login:', data);
+<<<<<<< HEAD
   // CAMBIA ESTE FETCH PARA QUE APUNTE A UN ENDPOINT DE TU SERVIDOR, PIENSA SI DEBE SER GET O POST, PIENSA QUÉ DATOS DEBES ENVIAR, ETC
   return fetch('//beta.adalab.es/curso-intensivo-fullstack-recursos/apis/netflix-v1/empty.json')
     .then((response) => response.json())
@@ -18,6 +19,18 @@ const sendLoginToApi = (data) => {
           errorMessage: 'Usuario no encontrado',
         };
       }
+=======
+  return fetch('http://localhost:4000/login', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+>>>>>>> laura
     });
 };
 
@@ -26,6 +39,7 @@ const sendLoginToApi = (data) => {
 const sendSingUpToApi = (data) => {
   console.log('Se están enviando datos al signup:', data);
   // CAMBIA ESTE FETCH PARA QUE APUNTE A UN ENDPOINT DE TU SERVIDOR, PIENSA SI DEBE SER GET O POST, PIENSA QUÉ DATOS DEBES ENVIAR, ETC
+<<<<<<< HEAD
   return fetch('//beta.adalab.es/curso-intensivo-fullstack-recursos/apis/netflix-v1/empty.json')
     .then((response) => response.json())
     .then(() => {
@@ -34,14 +48,7 @@ const sendSingUpToApi = (data) => {
         success: false,
         errorMessage: 'Usuario ya existente',
       };
-    });
-};
-
-// profile
-
-const sendProfileToApi = (userId, data) => {
-  console.log('Se están enviando datos al profile:', userId, data);
-  // CAMBIA ESTE FETCH PARA QUE APUNTE A UN ENDPOINT DE TU SERVIDOR, PIENSA SI DEBE SER GET O POST, PIENSA QUÉ DATOS DEBES ENVIAR, ETC
+=======
   return fetch('http://localhost:4000/sign-up', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -52,12 +59,42 @@ const sendProfileToApi = (userId, data) => {
     .then((response) => response.json())
     .then((data) => {
       return data;
+>>>>>>> laura
     });
+};
+
+// profile
+
+const sendProfileToApi = (userId, data) => {
+  console.log('Se están enviando datos al profile:', userId, data);
+  // CAMBIA ESTE FETCH PARA QUE APUNTE A UN ENDPOINT DE TU SERVIDOR, PIENSA SI DEBE SER GET O POST, PIENSA QUÉ DATOS DEBES ENVIAR, ETC
+<<<<<<< HEAD
+  return fetch('http://localhost:4000/sign-up', {
+=======
+  return fetch('http://localhost:4000/user/profile', {
+>>>>>>> laura
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+<<<<<<< HEAD
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+=======
+      'user-id': userId,
+    },
+  });
+>>>>>>> laura
 };
 
 const getProfileFromApi = (userId) => {
   console.log('Se están pidiendo datos del profile del usuario:', userId);
   // CAMBIA ESTE FETCH PARA QUE APUNTE A UN ENDPOINT DE TU SERVIDOR, PIENSA SI DEBE SER GET O POST, PIENSA QUÉ DATOS DEBES ENVIAR, ETC
+<<<<<<< HEAD
   return fetch('//beta.adalab.es/curso-intensivo-fullstack-recursos/apis/netflix-v1/empty.json')
     .then((response) => response.json())
     .then(() => {
@@ -68,6 +105,18 @@ const getProfileFromApi = (userId) => {
         email: 'mari@mail.com',
         password: '1234567',
       };
+=======
+  return fetch('http://localhost:4000/user/profile', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'user-id': userId,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+>>>>>>> laura
     });
 };
 

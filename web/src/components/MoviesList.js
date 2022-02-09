@@ -1,8 +1,8 @@
 import React from 'react';
 
-const MoviesList = props => {
+const MoviesList = (props) => {
   const renderMovieList = () => {
-    return <ul className="cards">{renderMovies()}</ul>;
+    return <ul className='cards'>{renderMovies()}</ul>;
   };
 
   const renderMovies = () => {
