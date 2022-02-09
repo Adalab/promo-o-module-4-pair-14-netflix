@@ -111,20 +111,35 @@ server.post('/user/profile', (req, res) => {
     success: true,
   });
 });
+
 //Endpoint recuperar datos del perfil de usuario
 server.get('/user/profile', (req, res) => {
   console.log('Petición a la ruta GET /user/profile');
   const userId = req.header('user-id');
   const query = db.prepare('SELECT name, email, password FROM users WHERE id=?');
   const result = query.get(userId);
-
   res.json(result);
 });
 
 server.get('/user/movies', (req, res) => {
+  const movieIdsQuery = db.prepare(
+    "SELECT idMovies FROM users_movies WHERE idUsers = ?"
+  );
+  const movieIds = movieIdsQuery.all(req.header("user-id"));
+  // obtenemos las interrogaciones separadas por comas
+  const moviesIdsQuestions = movieIds.map((id) => "?").join(", "); // que nos devuelve '?, ?'
+  // preparamos la segunda query para obtener todos los datos de las películas
+  const moviesQuery = db.prepare(
+    `SELECT * FROM movies WHERE id IN (${moviesIdsQuestions})`
+  );
+  // convertimos el array de objetos de id anterior a un array de números
+  const moviesIdsNumbers = movieIds.map((movie) => movie.movieId); // que nos devuelve [1.0, 2.0]
+  // ejecutamos segunda la query
+  const movies = moviesQuery.all(moviesIdsNumbers);
+
   res.json({
     success: true,
-    movies: [],
+    movies: movies,
   });
 });
 
