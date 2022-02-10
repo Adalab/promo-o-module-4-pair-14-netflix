@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
+const db = new Database('./src/db/database.db', { verbose: console.log });
 
 // create and config server
 const server = express();
@@ -8,20 +9,11 @@ server.use(cors());
 server.use(express.json());
 server.set('view engine', 'ejs');
 
-//Servidor de estaticos
-const staticServerPath = './src/public-react';
-server.use(express.static(staticServerPath));
-//Servidor de estaticos imagenes
-const staticServerImage = './src/public-movies-images';
-server.use(express.static(staticServerImage));
-
 // init express aplication
 const serverPort = 4000;
 server.listen(serverPort, () => {
   console.log(`Server listening at http://localhost:${serverPort}`);
 });
-
-const db = new Database('./src/db/database.db', { verbose: console.log });
 
 //Endpoint para obtener las peliculas
 server.get('/movies', (req, res) => {
@@ -147,6 +139,14 @@ server.get('/user/movies', (req, res) => {
     movies: movies,
   });
 });
+
+//Servidor de estaticos
+const staticServerPath = './src/public-react';
+server.use(express.static(staticServerPath));
+
+//Servidor de estaticos imagenes
+const staticServerImage = './src/public-movies-images';
+server.use(express.static(staticServerImage));
 
 //servidor de estáticos css
 const staticServerCss = './src/static/styles';
